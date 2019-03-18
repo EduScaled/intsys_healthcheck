@@ -103,6 +103,6 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
-*.sh
+#*.sh
 .vscode
 Pipfile.lock
