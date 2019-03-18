@@ -105,3 +105,4 @@ Temporary Items
 .apdisk
 *.sh
 .vscode
+Pipfile.lock

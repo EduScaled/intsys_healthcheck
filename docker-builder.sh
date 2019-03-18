@@ -3,8 +3,9 @@
 # last changes 06.01.2018 Create
 
 dockerhub='docker.u2035s.ru/'
-name=intsys-healthcheck
-tag=latest
+name="functional-checks"
+tag="latest"
+#version="_$(date +%Y-%m-%d_%H-%M-%S)"
 
 docker build -t ${dockerhub}${name}:${tag} -t ${dockerhub}${name}:${tag}${version}  . && \
 docker push ${dockerhub}${name}:${tag}${version} && docker push ${dockerhub}${name}:${tag}
