@@ -81,6 +81,28 @@ async def carrier_callback(request):
     return web.Response(status=200)
 
 
+async def update_settings(request):
+    update_query = """
+        INSERT INTO settings (name, value)
+        VALUES ('is_enabled', '{value}')
+        ON CONFLICT (name)
+        DO UPDATE SET
+        value='{value}';
+        """
+    post_data = await request.json()
+    is_enabled = post_data.get('is_enabled', None)
+    if is_enabled:
+        pool = await aiopg.create_pool("host={} port={} dbname={} user={} password={}".format(
+            settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER, settings.DB_PASSWORD
+            ))
+        async with pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(update_query.format(value=is_enabled))
+                conn.commit()
+        return web.Response(status=200)
+
+    return web.Response(status=400)
+
 def init_func():
     app = web.Application()
     app.add_routes([
@@ -88,5 +110,6 @@ def init_func():
         web.get('/healthcheck/db', db_healthcheck),
         web.get('/healthcheck/carrier', carrier_healthcheck),
         web.post('/carrier/callback', carrier_callback),
+        web.post('/healthcheck/settings/update', update_settings),
     ])
     return app
