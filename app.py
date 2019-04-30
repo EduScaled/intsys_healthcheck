@@ -80,27 +80,6 @@ async def carrier_callback(request):
 
     return web.Response(status=200)
 
-async def set_settings(request):
-    update_query = """
-    INSERT INTO settings (name, value)
-    VALUES ('is_required', '{value}')
-    ON CONFLICT (name)
-    DO UPDATE SET
-    value='{value}';
-    """
-    post_data = await request.json()
-    is_required = post_data.get('is_required', None)
-    if is_required is not None:
-        pool = await aiopg.create_pool("host={} port={} dbname={} user={} password={}".format(
-            settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER, settings.DB_PASSWORD
-            ))
-        async with pool.acquire() as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute(update_query.format(value=is_required))
-                conn.commit()
-        return web.Response(status=200)
-
-    return web.Response(status=400, text='Неизвестные параметры запроса.')
 
 def init_func():
     app = web.Application()
@@ -108,7 +87,6 @@ def init_func():
         web.get('/healthcheck/culture', culture_healthcheck),
         web.get('/healthcheck/db', db_healthcheck),
         web.get('/healthcheck/carrier', carrier_healthcheck),
-        web.post('/healthcheck/set_settings', set_settings),
         web.post('/carrier/callback', carrier_callback),
     ])
     return app
