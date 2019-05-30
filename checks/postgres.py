@@ -1,5 +1,7 @@
 import aiopg
 
+db_check_query = "SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';"
+
 class PostgresResponseCheck:
 
     def __init__(self, host, port, dbname, user, password) -> None:
@@ -12,7 +14,7 @@ class PostgresResponseCheck:
         pool = await aiopg.create_pool(self.dsn)
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
-                await cur.execute("SELECT 1")
+                await cur.execute(db_check_query)
                 ret = []
                 async for row in cur:
                     ret.append(row)
