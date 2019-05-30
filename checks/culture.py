@@ -26,11 +26,7 @@ class CultureCheck:
                     query_result = await self.fetch_result(cursor)
 
                 if len(query_result) == 1:
-                    from pprint import pprint
-                    pprint(query_result[0])
-                    
                     data = json.loads(query_result[0][0])
-                    pprint(data)
 
                     if data.get("created_at", None):
                         parsed = datetime.fromisoformat(data.get("created_at"))
@@ -40,9 +36,9 @@ class CultureCheck:
                             data["status"] = 500
                             result = data
                     else:
-                        result = { "status": 500, "db": "false" }
+                        result = { "status": 500, "db": "field 'created_at' not found" }
                 else:
-                    result = { "status": 500, "db": "false" }
+                    result = { "status": 500, "db": "query result length doesn't equal 1" }
                         
                 return result
 
