@@ -106,3 +106,4 @@ Temporary Items
 #*.sh
 .vscode
 Pipfile.lock
+local.env
