@@ -66,6 +66,7 @@ async def carrier_healthcheck(_):
 async def carrier_callback(request):
     json_request = await request.json()
     if json_request['topic'] == 'healthcheck':
+        logger.info(f"[CarrierCheck] got healthcheck callback.")
         pool = await aiopg.create_pool("host={} port={} dbname={} user={} password={}".format(
             settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER, settings.DB_PASSWORD
         ))
@@ -73,7 +74,7 @@ async def carrier_callback(request):
             async with conn.cursor() as cur:
                 await cur.execute("SELECT message FROM carrier_message")
                 query_result = await cur.fetchall()
-                if query_result[0][0] == json_request['value']:
+                if query_result[0][0] == json_request['value'].replace('"',''):
                     kafka_read_result = {
                         "carrier-kafka-read": True,
                         "status": 200,
@@ -84,8 +85,12 @@ async def carrier_callback(request):
                             json.dumps(kafka_read_result)
                         ))
                     conn.commit()
+                    logger.info(f"[CarrierCheck] callback read and saved to db.")
                 else:
-                    pass
+                    logger.info(f'''
+                    [CarrierCheck] callback not processed.
+                    Stored  {query_result[0][0]} and Received {json_request['value'].replace('"','')}
+                    messages is not equal.''')
 
     return web.Response(status=200)
 
