@@ -9,4 +9,4 @@ docker run -d --name intsys_healthcheck_1 intsys_healthcheck
 ```
 
 ## Set settingss
-curl -v -H "Content-Type: application/json" -X POST http://127.0.0.1:8009/healthcheck/set_settings -d '{"is_enabled":false}'
+curl -v -H "Content-Type: application/json" -X POST https://fc.qa.u2035s.ru/healthcheck/settings/update -d '{"is_enabled":true}'

@@ -3,6 +3,9 @@ import aiopg
 import asyncio
 from datetime import datetime, timedelta
 
+from aiologger import Logger
+
+logger = Logger.with_default_handlers()
 
 class CarrierCheck:
 
@@ -29,6 +32,7 @@ class CarrierCheck:
                 if len(query_result) == 2:
                     for row in query_result:
                         data = json.loads(row[0])
+                        logger.info(f"[CarrierCheck] CarrierStatus data:{data}")
                         if data.get("created_at", None):
                             parsed = datetime.fromisoformat(data.get("created_at"))
                             if (datetime.utcnow() - timedelta(minutes=2)) <= parsed:
@@ -38,6 +42,7 @@ class CarrierCheck:
                         else:
                             checks.append(False)
                 else:
+                    logger.info(f"[CarrierCheck] QueryResult:{query_result}")
                     checks.append(False)
 
         return {
