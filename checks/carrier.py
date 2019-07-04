@@ -7,6 +7,7 @@ from aiologger import Logger
 
 logger = Logger.with_default_handlers()
 
+
 class CarrierCheck:
 
     def __init__(self, host, port, dbname, user, password) -> None:
@@ -25,6 +26,7 @@ class CarrierCheck:
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
                 query_result = await self.fetch_result(cur)
+                logger.info(f"[CarrierCheck] QueryResult:{query_result}")
                 if len(query_result) < 2:
                     asyncio.sleep(1)
                     query_result = await self.fetch_result(cur)
@@ -32,7 +34,7 @@ class CarrierCheck:
                 if len(query_result) == 2:
                     for row in query_result:
                         data = json.loads(row[0])
-                        logger.info(f"[CarrierCheck] CarrierStatus data:{data}")
+                        logger.info(f"[CarrierCheck] CarrierStatusData:{data}")
                         if data.get("created_at", None):
                             parsed = datetime.fromisoformat(data.get("created_at"))
                             if (datetime.utcnow() - timedelta(minutes=2)) <= parsed:
@@ -42,7 +44,6 @@ class CarrierCheck:
                         else:
                             checks.append(False)
                 else:
-                    logger.info(f"[CarrierCheck] QueryResult:{query_result}")
                     checks.append(False)
 
         return {
@@ -50,7 +51,6 @@ class CarrierCheck:
         "carrier": all(checks),
         "created_at": str(datetime.utcnow())
         }
-
 
     async def check(self):
         return await self.carrier_healthcheck()
