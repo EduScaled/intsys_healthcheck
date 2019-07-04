@@ -3,6 +3,9 @@ import aiopg
 import asyncio
 from datetime import datetime, timedelta
 
+from aiologger import Logger
+
+logger = Logger.with_default_handlers()
 
 class CultureCheck:
 
@@ -27,7 +30,7 @@ class CultureCheck:
 
                 if len(query_result) == 1:
                     data = json.loads(query_result[0][0])
-
+                    logger.info(f"[CultureCheck] CultureStatus data:{data}")
                     if data.get("created_at", None):
                         parsed = datetime.fromisoformat(data.get("created_at"))
                         if (datetime.utcnow() - timedelta(minutes=2)) <= parsed:
@@ -38,6 +41,7 @@ class CultureCheck:
                     else:
                         result = { "status": 500, "db": "field 'created_at' not found" }
                 else:
+                    logger.info(f"[CultureCheck] QueryResult:{query_result}")
                     result = { "status": 500, "db": "query result length doesn't equal 1" }
                         
                 return result

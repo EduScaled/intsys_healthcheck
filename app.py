@@ -15,6 +15,11 @@ from checks.culture import CultureCheck
 from checks.postgres import PostgresResponseCheck
 from settings import settings
 
+from aiologger import Logger
+
+logger = Logger.with_default_handlers()
+
+
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
     environment=settings.SENTRY_ENVIRONMENT,
@@ -29,30 +34,34 @@ async def run_check(f: Callable, **kwargs):
         capture_exception(e)
         return False
 
+
 async def db_healthcheck(_):
     result = await PostgresResponseCheck(
         settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER,  settings.DB_PASSWORD
     ).check()
     status = 200 if result else 500
     result = { "status": status, "db": str(status == 200).lower() }
-    
+    logger.info(f"[DBCheck] {result}")
     return web.json_response(result, status=status)
+
 
 async def culture_healthcheck(_):
     result = await CultureCheck(
         settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER,  settings.DB_PASSWORD
     ).check()
     status = 200 if str(result.get("status", None)) == "200" else 500
-
+    logger.info(f"[CultureCheck] {result}")
     return web.json_response(result, status=status)
+
 
 async def carrier_healthcheck(_):
     result = await CarrierCheck(
         settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER,  settings.DB_PASSWORD
     ).check()
     status = 200 if str(result.get("status", None)) == "200" else 500
-
+    logger.info(f"[CarrierCheck] {result}")
     return web.json_response(result, status=status)
+
 
 async def carrier_callback(request):
     json_request = await request.json()
@@ -99,11 +108,15 @@ async def update_settings(request):
             async with conn.cursor() as cursor:
                 await cursor.execute(update_query.format(value=is_enabled))
                 conn.commit()
+        logger.info(f"[Settings] updated.")
         return web.Response(status=200)
 
+    logger.info(f"[Settings] not updated.")
     return web.Response(status=400)
 
+
 def init_func():
+    logger.info(f"[HealthCheck] started.")
     app = web.Application()
     app.add_routes([
         web.get('/healthcheck/culture', culture_healthcheck),
