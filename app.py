@@ -54,6 +54,7 @@ async def culture_healthcheck(_):
     return web.json_response(result, status=status)
 
 
+
 async def carrier_healthcheck(_):
     result = await CarrierCheck(
         settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER,  settings.DB_PASSWORD
