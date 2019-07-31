@@ -13,6 +13,7 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from checks.carrier import CarrierCheck
 from checks.culture import CultureCheck
 from checks.postgres import PostgresResponseCheck
+from checks.uploads import UploadsCheck
 from settings import settings
 
 from aiologger import Logger
@@ -51,6 +52,15 @@ async def culture_healthcheck(_):
     ).check()
     status = 200 if str(result.get("status", None)) == "200" else 500
     logger.info(f"[CultureCheck] {result}")
+    return web.json_response(result, status=status)
+
+
+async def uploads_healthcheck(_):
+    result = await UploadsCheck(
+        settings.DB_HOST, settings.DB_PORT, settings.DB_NAME, settings.DB_USER,  settings.DB_PASSWORD
+    ).check()
+    status = 200 if str(result.get("status", None)) == "200" else 500
+    logger.info(f"[UploadsCheck] {result}")
     return web.json_response(result, status=status)
 
 
@@ -125,6 +135,7 @@ def init_func():
     app = web.Application()
     app.add_routes([
         web.get('/healthcheck/culture', culture_healthcheck),
+        web.get('/healthcheck/uploads', uploads_healthcheck),
         web.get('/healthcheck/db', db_healthcheck),
         web.get('/healthcheck/carrier', carrier_healthcheck),
         web.post('/carrier/callback', carrier_callback),

@@ -7,7 +7,7 @@ from aiologger import Logger
 
 logger = Logger.with_default_handlers()
 
-class CultureCheck:
+class UploadsCheck:
 
     def __init__(self, host, port, dbname, user, password) -> None:
         super().__init__()
@@ -16,10 +16,10 @@ class CultureCheck:
         )
 
     async def fetch_result(self, cursor):
-        await cursor.execute("SELECT result FROM intsys_culture_status;")
+        await cursor.execute("SELECT result FROM intsys_uploads_status;")
         return await cursor.fetchall()
 
-    async def culture_healthcheck(self):
+    async def uploads_healthcheck(self):
         pool = await aiopg.create_pool(self.dsn)
         async with pool.acquire() as conn:
             async with conn.cursor() as cursor:
@@ -30,7 +30,7 @@ class CultureCheck:
 
                 if len(query_result) == 1:
                     data = json.loads(query_result[0][0])
-                    logger.info(f"[CultureCheck] CultureStatus data:{data}")
+                    logger.info(f"[UploadsCheck] UploadsStatus data:{data}")
                     if data.get("created_at", None):
                         parsed = datetime.fromisoformat(data.get("created_at"))
                         if (datetime.utcnow() - timedelta(minutes=2)) <= parsed:
@@ -41,10 +41,10 @@ class CultureCheck:
                     else:
                         result = { "status": 500, "db": "field 'created_at' not found" }
                 else:
-                    logger.info(f"[CultureCheck] QueryResult:{query_result}")
+                    logger.info(f"[UploadsCheck] QueryResult:{query_result}")
                     result = { "status": 500, "db": "query result length doesn't equal 1" }
                         
                 return result
 
     async def check(self):
-        return await self.culture_healthcheck()
+        return await self.uploads_healthcheck()

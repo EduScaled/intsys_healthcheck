@@ -28,7 +28,7 @@ class CarrierCheck:
                 query_result = await self.fetch_result(cur)
                 logger.info(f"[CarrierCheck] QueryResult:{query_result}")
                 if len(query_result) < 2:
-                    asyncio.sleep(1)
+                    await asyncio.sleep(1)
                     query_result = await self.fetch_result(cur)
 
                 if len(query_result) == 2:
